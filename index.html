@@ -3,233 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouisGPT | Neural Terminal</title>
+    <title>RouisGPT | Obsidian Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #fbbf24; --bg: #05070a; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #e2e8f0; }
+        :root { --accent: #fbbf24; --bg: #080808; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: #fff; overflow: hidden; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Effet de grille de fond (Cyber) */
-        .bg-grid {
-            background-image: linear-gradient(to right, rgba(251,191,36,0.03) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(251,191,36,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-
-        .neo-card {
-            background: rgba(10, 14, 23, 0.8);
-            border: 1px solid rgba(251, 191, 36, 0.1);
-            backdrop-filter: blur(12px);
-        }
-
-        .neon-border-focus:focus-within {
-            border-color: var(--neon);
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
-        }
-
-        .message-user { background: var(--neon); color: #000; border-radius: 20px 20px 0 20px; font-weight: 600; }
-        .message-ai { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px 20px 20px 0; }
+        .panel { background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); }
+        .glow-amber { box-shadow: 0 0 20px rgba(251, 191, 36, 0.15); }
         
-        .loading-bar {
-            width: 40px; height: 3px; background: var(--neon);
-            box-shadow: 0 0 10px var(--neon);
-            animation: loading 1.5s infinite ease-in-out;
-        }
-        @keyframes loading { 0% { transform: translateX(-20px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateX(20px); opacity: 0; } }
+        /* Custom Scrollbar */
+        .scroller::-webkit-scrollbar { width: 3px; }
+        .scroller::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .scroller::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Animation d'entrée des messages */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-anim { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-grid">
+<body class="h-screen flex flex-col">
 
-    <nav class="h-20 flex items-center justify-between px-8 border-b border-white/5 neo-card z-50">
-        <div class="flex items-center gap-4">
-            <div class="h-10 w-10 border-2 border-[#fbbf24] flex items-center justify-center font-black text-[#fbbf24] text-xl shadow-[0_0_10px_rgba(251,191,36,0.3)]">R</div>
-            <div class="flex flex-col">
-                <span class="text-sm font-bold tracking-widest uppercase">Rouis<span class="text-[#fbbf24]">GPT</span></span>
-                <span class="text-[9px] text-gray-500 mono uppercase tracking-[0.3em]">Neural Interface v2.0.4</span>
+    <header class="h-14 flex items-center justify-between px-6 border-b border-white/5 panel">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse glow-amber"></div>
+            <span class="text-xs font-bold tracking-[0.2em] mono uppercase text-gray-400">RouisGPT_v3.0.1</span>
+        </div>
+        <button onclick="openConfig()" class="text-[10px] mono border border-white/10 px-3 py-1 rounded hover:bg-white/5 transition">CONFIG_SYSTEM</button>
+    </header>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        <div id="chat-box" class="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 scroller">
+            <div id="init-view" class="h-full flex flex-col items-center justify-center text-center opacity-40">
+                <div class="text-5xl mb-6">🛰️</div>
+                <h2 class="text-xl font-light tracking-widest uppercase">Liaison Satellite Établie</h2>
+                <p class="text-[10px] mono mt-2">Prêt pour l'exécution des requêtes.</p>
             </div>
         </div>
-        <div class="flex items-center gap-6">
-            <div id="status-indicator" class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] mono text-gray-400">CORE_ACTIVE</span>
+
+        <div id="img-prev" class="hidden px-12 mb-4">
+            <div class="relative inline-block group">
+                <img id="render-prev" src="" class="h-24 rounded-xl border border-amber-400/50">
+                <button onclick="dropImg()" class="absolute -top-2 -right-2 bg-red-500 rounded-full w-5 h-5 text-[10px] flex items-center justify-center">×</button>
             </div>
-            <button onclick="openSettings()" class="p-2 hover:bg-white/5 rounded-lg transition border border-white/10 text-gray-400 hover:text-white">SET_KEY</button>
         </div>
-    </nav>
 
-    <div class="flex-1 flex overflow-hidden">
-        
-        <main class="flex-1 flex flex-col relative">
-            <div id="chat-flow" class="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 no-scrollbar">
-                <div id="welcome-msg" class="h-full flex flex-col items-center justify-center text-center">
-                    <div class="mono text-[10px] text-[#fbbf24] mb-4 tracking-[0.5em] uppercase animate-pulse">Waiting for prompt...</div>
-                    <h2 class="text-3xl font-light text-gray-400">Bienvenue, <span class="text-white font-bold">Rouis</span>.</h2>
-                </div>
+        <footer class="p-6 md:p-10 bg-gradient-to-t from-black to-transparent">
+            <div class="max-w-4xl mx-auto panel rounded-2xl p-2 flex items-end gap-3 ring-1 ring-white/10 focus-within:ring-amber-400/40 transition-all">
+                <button onclick="document.getElementById('file-up').click()" class="p-4 text-gray-500 hover:text-amber-400 transition">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m21 15-3-3-2 2-4-4-6 6"/></svg>
+                </button>
+                <input type="file" id="file-up" class="hidden" accept="image/*" onchange="loadImg(event)">
+                
+                <textarea id="prompt-in" rows="1" placeholder="Entrez votre commande..." class="flex-1 bg-transparent p-4 outline-none resize-none mono text-sm" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                
+                <button onclick="startProcess()" class="bg-amber-400 text-black px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:scale-[1.02] transition active:scale-95">
+                    Envoyer
+                </button>
             </div>
+        </footer>
+    </main>
 
-            <div id="preview-container" class="hidden px-12 pb-4">
-                <div class="relative w-max group">
-                    <img id="img-render" src="" class="h-32 rounded-lg border-2 border-[#fbbf24]/50 shadow-2xl">
-                    <button onclick="cancelImg()" class="absolute -top-3 -right-3 bg-red-600 h-6 w-6 rounded-full text-white text-xs">×</button>
-                </div>
-            </div>
-
-            <footer class="p-8">
-                <div class="max-w-5xl mx-auto neo-card rounded-2xl p-3 neon-border-focus transition-all duration-300">
-                    <div class="flex items-center gap-3">
-                        <button onclick="document.getElementById('upload-trigger').click()" class="p-4 text-gray-500 hover:text-[#fbbf24] transition">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        </button>
-                        <input type="file" id="upload-trigger" class="hidden" accept="image/*" onchange="previewFile(event)">
-                        
-                        <textarea id="user-prompt" rows="1" placeholder="ENTER COMMAND..." class="flex-1 bg-transparent py-4 outline-none resize-none mono text-sm tracking-wide text-gray-200" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-                        
-                        <button onclick="executeAI()" class="bg-[#fbbf24] text-black px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all">
-                            Execute
-                        </button>
-                    </div>
-                </div>
-            </footer>
-        </main>
-    </div>
-
-    <div id="settings-overlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center p-6">
-        <div class="w-full max-w-md border border-white/10 p-10 rounded-2xl bg-[#05070a] shadow-2xl">
-            <h3 class="mono text-[#fbbf24] text-lg mb-8 tracking-tighter">AUTHENTICATION_REQUIRED</h3>
-            <div class="space-y-6">
-                <div>
-                    <label class="text-[10px] mono text-gray-500 mb-2 block tracking-widest uppercase">Gemini API Key</label>
-                    <input type="password" id="api-key-store" class="w-full bg-white/5 border border-white/10 p-4 rounded outline-none focus:border-[#fbbf24] transition text-white mono" placeholder="AIzaSy...">
-                </div>
-                <button onclick="saveKey()" class="w-full bg-white text-black font-bold py-4 rounded hover:bg-[#fbbf24] transition duration-500 mono text-xs uppercase tracking-widest">Connect Session</button>
-            </div>
+    <div id="config-ui" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-sm panel p-8 rounded-3xl border-amber-400/20">
+            <h3 class="text-lg font-bold mb-6 text-amber-400 uppercase tracking-tighter">Configuration API</h3>
+            <input type="password" id="api-key" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none focus:border-amber-400 transition text-sm mono mb-4" placeholder="Collez votre clé AIzaSy...">
+            <button onclick="saveAndGo()" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-amber-400 transition uppercase text-xs">Valider la connexion</button>
         </div>
     </div>
 
     <script>
-        let imgB64 = null;
+        let tempImg = null;
 
-        function openSettings() { document.getElementById('settings-overlay').classList.remove('hidden'); }
-        function saveKey() {
-            const val = document.getElementById('api-key-store').value.trim();
-            if(val) { localStorage.setItem('rouis_key_v2', val); document.getElementById('settings-overlay').classList.add('hidden'); }
+        function openConfig() { document.getElementById('config-ui').classList.remove('hidden'); }
+        function saveAndGo() {
+            const key = document.getElementById('api-key').value.trim();
+            if(key) { localStorage.setItem('r_key', key); document.getElementById('config-ui').classList.add('hidden'); }
         }
 
-        function previewFile(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                imgB64 = ev.target.result;
-                document.getElementById('img-render').src = imgB64;
-                document.getElementById('preview-container').classList.remove('hidden');
+        function loadImg(e) {
+            const f = e.target.files[0];
+            const r = new FileReader();
+            r.onload = (ev) => {
+                tempImg = ev.target.result;
+                document.getElementById('render-prev').src = tempImg;
+                document.getElementById('img-prev').classList.remove('hidden');
             };
-            reader.readAsDataURL(file);
+            r.readAsDataURL(f);
         }
 
-        function cancelImg() {
-            imgB64 = null;
-            document.getElementById('preview-container').classList.add('hidden');
-            document.getElementById('upload-trigger').value = '';
+        function dropImg() {
+            tempImg = null;
+            document.getElementById('img-prev').classList.add('hidden');
+            document.getElementById('file-up').value = '';
         }
 
-        async function tryFetch(url, payload) {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            return response;
-        }
+        async function startProcess() {
+            const input = document.getElementById('prompt-in');
+            const txt = input.value.trim();
+            const key = localStorage.getItem('r_key');
 
-        async function executeAI() {
-            const input = document.getElementById('user-prompt');
-            const prompt = input.value.trim();
-            const key = localStorage.getItem('rouis_key_v2');
+            if(!key) return openConfig();
+            if(!txt && !tempImg) return;
 
-            if(!key) return openSettings();
-            if(!prompt && !imgB64) return;
-
-            document.getElementById('welcome-msg').style.display = 'none';
-            addBubble('user', prompt, imgB64);
+            document.getElementById('init-view').style.display = 'none';
+            addBubble('user', txt, tempImg);
             input.value = '';
-            const loadingId = showLoading();
-            const activeImg = imgB64;
-            cancelImg();
+            const loadId = addLoading();
+            const imgToPass = tempImg;
+            dropImg();
 
-            // LOGIQUE DE DÉPANNAGE AUTOMATIQUE (Anti-404)
-            const models = ["gemini-1.5-flash", "gemini-pro"];
-            const versions = ["v1beta", "v1"];
-            let success = false;
-            let finalData = null;
+            try {
+                // FORCE LA VERSION 1 STABLE - La plus compatible
+                const model = "gemini-1.5-flash";
+                const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
 
-            // On tente les combinaisons jusqu'à ce que ça marche
-            for(let v of versions) {
-                for(let m of models) {
-                    if(success) break;
-                    try {
-                        const url = `https://generativelanguage.googleapis.com/${v}/models/${m}:generateContent?key=${key}`;
-                        const payload = {
-                            contents: [{
-                                parts: [
-                                    { text: prompt || "Analyse image" },
-                                    ...(activeImg ? [{ inline_data: { mime_type: "image/jpeg", data: activeImg.split(',')[1] } }] : [])
-                                ]
-                            }]
-                        };
-                        const res = await tryFetch(url, payload);
-                        const data = await res.json();
-                        
-                        if(!data.error) {
-                            finalData = data;
-                            success = true;
-                        }
-                    } catch(e) { console.warn(`Echec sur ${v}/${m}`); }
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: txt || "Analyse de cette image." },
+                            ...(imgToPass ? [{ inline_data: { mime_type: "image/jpeg", data: imgToPass.split(',')[1] } }] : [])
+                        ]
+                    }]
+                };
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                
+                if(data.error) {
+                    // TENTATIVE DE SECOURS (Si v1 échoue, on tente v1beta)
+                    console.log("Essai secours v1beta...");
+                    const backupUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+                    const backupRes = await fetch(backupUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const backupData = await backupRes.json();
+                    
+                    if(backupData.error) throw new Error(backupData.error.message);
+                    renderAI(backupData, loadId);
+                } else {
+                    renderAI(data, loadId);
                 }
-            }
 
-            document.getElementById(loadingId).remove();
-
-            if(success && finalData.candidates) {
-                const text = finalData.candidates[0].content.parts[0].text;
-                addBubble('model', text);
-            } else {
-                addBubble('model', "CRITICAL_FAILURE: Impossible de contacter les modèles Gemini. Vérifie ta clé ou ta connexion.");
+            } catch (err) {
+                document.getElementById(loadId).innerHTML = `<div class="text-red-500 text-[10px] mono">CRITICAL_ERR: ${err.message}</div>`;
             }
+        }
+
+        function renderAI(data, loadId) {
+            const text = data.candidates[0].content.parts[0].text;
+            document.getElementById(loadId).remove();
+            addBubble('ai', text);
         }
 
         function addBubble(role, text, img) {
-            const flow = document.getElementById('chat-flow');
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`;
-            
-            div.innerHTML = `
-                <div class="${role === 'user' ? 'message-user' : 'message-ai'} p-5 max-w-[80%] shadow-2xl">
-                    ${img ? `<img src="${img}" class="rounded-lg mb-3 border border-black/10">` : ''}
-                    <p class="text-[14px] leading-relaxed whitespace-pre-wrap ${role === 'user' ? 'text-black' : 'text-gray-200'}">${text}</p>
-                </div>
-            `;
-            flow.appendChild(div);
-            flow.scrollTop = flow.scrollHeight;
+            const box = document.getElementById('chat-box');
+            const d = document.createElement('div');
+            d.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} msg-anim`;
+            d.innerHTML = `
+                <div class="max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-amber-400 text-black rounded-br-none' : 'panel text-gray-200 rounded-tl-none border-white/10'} shadow-2xl">
+                    ${img ? `<img src="${img}" class="rounded-xl mb-3 max-h-60 w-full object-cover">` : ''}
+                    <p class="text-sm leading-relaxed whitespace-pre-wrap">${text}</p>
+                </div>`;
+            box.appendChild(d);
+            box.scrollTop = box.scrollHeight;
         }
 
-        function showLoading() {
-            const id = 'loader-' + Date.now();
-            const flow = document.getElementById('chat-flow');
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = "flex justify-start";
-            div.innerHTML = `<div class="neo-card p-4 rounded-xl"><div class="loading-bar"></div><div class="text-[8px] mono mt-2 text-[#fbbf24]">PROCESSING...</div></div>`;
-            flow.appendChild(div);
-            flow.scrollTop = flow.scrollHeight;
-            return id;
-        }
-
-        window.onload = () => {
-            if(!localStorage.getItem('rouis_key_v2')) openSettings();
-            else document.getElementById('api-key-store').value = localStorage.getItem('rouis_key_v2');
-        };
-    </script>
-</body>
-</html>
+        function addLoading() {
+            const id = 'ld-' + Date.now();
+            const box = document.getElementById('chat-box');
+            const d = document.createElement('div');
+            d.id = id;
+            d.className = "flex justify-start animate-pulse";
+            d.innerHTML = `<div class="panel
