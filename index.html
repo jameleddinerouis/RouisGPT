@@ -3,144 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouisGPT | Next-Gen AI</title>
+    <title>RouisGPT | Neural Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050914; color: #e2e8f0; }
-        .glass { background: rgba(10, 16, 34, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .yellow-glow { box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
-        .typing-dot { width: 6px; height: 6px; background: #fbbf24; border-radius: 50%; animation: blink 1.4s infinite both; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
-    </style>
-</head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
-
-    <aside class="w-full md:w-72 bg-[#0a1022] border-r border-[#1a2542] flex flex-col p-4">
-        <div class="flex items-center justify-between mb-8">
-            <h1 class="text-2xl font-extrabold text-[#fbbf24]">Rouis<span class="text-white">GPT</span></h1>
-            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white">⚙️</button>
-        </div>
-        <a href="offres.html" class="mb-4 p-3 bg-[#1a2542] rounded-xl text-center text-sm hover:bg-[#fbbf24] hover:text-black transition font-bold">🛒 Boutique Brawl Stars</a>
-        <div id="history" class="flex-1 overflow-y-auto space-y-2 text-xs text-gray-500">
-            </div>
-    </aside>
-
-    <main class="flex-1 flex flex-col relative">
-        <div id="modal" class="absolute inset-0 z-50 bg-black/70 flex items-center justify-center hidden backdrop-blur-md">
-            <div class="glass p-8 rounded-3xl w-80 text-center">
-                <h2 class="text-[#fbbf24] font-bold mb-4">CLÉ API GOOGLE</h2>
-                <input type="password" id="key-input" placeholder="AIzaSy..." class="w-full bg-black border border-[#1a2542] p-3 rounded-lg text-white mb-4 outline-none focus:border-[#fbbf24]">
-                <button onclick="saveKey()" class="w-full bg-[#fbbf24] text-black font-bold py-2 rounded-lg">ACTIVER</button>
-            </div>
-        </div>
-
-        <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-6">
-            <div class="text-center py-20 opacity-50">
-                <p class="text-4xl mb-4">🤖</p>
-                <p>Système prêt. Pose-moi une question ou envoie une image.</p>
-            </div>
-        </div>
-
-        <footer class="p-6">
-            <div class="max-w-4xl mx-auto glass rounded-2xl p-2 flex items-center gap-2 yellow-glow">
-                <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(event)">
-                <button onclick="document.getElementById('file-input').click()" class="p-3 hover:bg-white/10 rounded-xl transition">🖼️</button>
-                <textarea id="user-input" rows="1" placeholder="Écris ici..." class="flex-1 bg-transparent p-3 outline-none resize-none"></textarea>
-                <button onclick="send()" class="bg-[#fbbf24] text-black p-3 rounded-xl font-bold hover:scale-105 transition">ENVOYER</button>
-            </div>
-            <div id="preview-area" class="mt-2 flex justify-center hidden">
-                <img id="img-preview" src="" class="h-20 rounded-lg border border-[#fbbf24]">
-            </div>
-        </footer>
-    </main>
-
-    <script>
-        let currentImgBase64 = null;
-
-        function toggleSettings() { document.getElementById('modal').classList.toggle('hidden'); }
+        :root { --accent: #fbbf24; --bg: #020617; }
+        body { font-family: 'Space Grotesk', sans-serif; background-color: var(--bg); color: #f8fafc; }
         
-        function saveKey() {
-            const key = document.getElementById('key-input').value.trim();
-            if(key) { localStorage.setItem('rouis_key', key); toggleSettings(); alert("Clé activée !"); }
+        .neo-glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
         }
 
-        function handleFile(e) {
+        .amber-glow {
+            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+        }
+
+        /* Animation de l'IA qui réfléchit */
+        .pulse-loader {
+            display: flex; gap: 4px;
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; background: var(--accent);
+            border-radius: 50%; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.5); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <nav class="h-16 flex items-center justify-between px-8 border-b border-white/5 neo-glass z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-amber-400 rounded-lg rotate-12 flex items-center justify-center text-black font-bold">R</div>
+            <span class="text-xl font-bold tracking-tighter">Rouis<span class="text-amber-400">GPT</span></span>
+        </div>
+        <div class="flex items-center gap-6">
+            <button onclick="clearHistory()" class="text-xs text-gray-500 hover:text-red-400 transition">EFFACER HISTORIQUE</button>
+            <button onclick="openSettings()" class="p-2 hover:bg-white/5 rounded-full transition">⚙️</button>
+        </div>
+    </nav>
+
+    <div class="flex-1 flex overflow-hidden">
+        
+        <aside class="w-64 border-r border-white/5 hidden lg:flex flex-col p-4 space-y-4">
+            <div class="text-[10px] uppercase tracking-widest text-gray-600 font-bold">Sessions Récentes</div>
+            <div id="side-history" class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col relative">
+            <div id="chat-flow" class="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 custom-scrollbar">
+                <div id="hero" class="h-full flex flex-col items-center justify-center text-center space-y-6">
+                    <div class="w-20 h-20 rounded-full bg-amber-400/10 flex items-center justify-center border border-amber-400/20 amber-glow">
+                        <span class="text-3xl">✨</span>
+                    </div>
+                    <h2 class="text-4xl font-bold tracking-tight">Comment puis-je vous aider, <span class="text-amber-400">Rouis</span> ?</h2>
+                    <div class="grid grid-cols-2 gap-3 max-w-lg">
+                        <div onclick="quickAsk('Analyse mon code')" class="p-4 border border-white/5 rounded-xl hover:bg-white/5 cursor-pointer transition text-sm text-gray-400">"Analyse mon code..."</div>
+                        <div onclick="quickAsk('Idée de business digital')" class="p-4 border border-white/5 rounded-xl hover:bg-white/5 cursor-pointer transition text-sm text-gray-400">"Idée de business..."</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="img-preview-container" class="hidden px-10 pb-2">
+                <div class="relative inline-block">
+                    <img id="img-preview" src="" class="h-24 rounded-2xl border-2 border-amber-400 shadow-xl">
+                    <button onclick="resetImage()" class="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center text-white text-xs">×</button>
+                </div>
+            </div>
+
+            <footer class="p-4 md:p-10">
+                <div class="max-w-4xl mx-auto neo-glass rounded-3xl p-3 flex items-end gap-3 focus-within:ring-2 ring-amber-400/20 transition-all">
+                    <button onclick="document.getElementById('file-input').click()" class="p-3 text-gray-400 hover:text-amber-400 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    </button>
+                    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleImage(event)">
+                    
+                    <textarea id="main-input" rows="1" placeholder="Posez une question à l'IA..." class="flex-1 bg-transparent p-3 outline-none resize-none text-gray-200 placeholder:text-gray-600" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                    
+                    <button onclick="handleExecute()" class="bg-amber-400 hover:bg-amber-300 text-black p-3 rounded-2xl transition shadow-lg amber-glow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                    </button>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-6">
+        <div class="w-full max-w-md neo-glass p-8 rounded-[40px] space-y-6">
+            <h3 class="text-2xl font-bold">Configuration Système</h3>
+            <div>
+                <label class="text-[10px] uppercase tracking-widest text-gray-500">Google Gemini API Key</label>
+                <input type="password" id="api-key" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl mt-2 outline-none focus:border-amber-400 transition" placeholder="AIzaSy...">
+            </div>
+            <button onclick="saveSettings()" class="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-amber-400 transition">ACTIVER LE CERVEAU</button>
+            <button onclick="closeSettings()" class="w-full text-gray-500 text-sm">Fermer</button>
+        </div>
+    </div>
+
+    <script>
+        let base64Image = null;
+        let history = JSON.parse(localStorage.getItem('rgpt_history')) || [];
+
+        window.onload = () => {
+            document.getElementById('api-key').value = localStorage.getItem('rgpt_key') || '';
+            renderSideHistory();
+        };
+
+        function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+        
+        function saveSettings() {
+            const k = document.getElementById('api-key').value.trim();
+            if(k) { localStorage.setItem('rgpt_key', k); closeSettings(); }
+        }
+
+        function handleImage(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = (event) => {
-                currentImgBase64 = event.target.result;
-                document.getElementById('img-preview').src = currentImgBase64;
-                document.getElementById('preview-area').classList.remove('hidden');
+            reader.onload = (ev) => {
+                base64Image = ev.target.result;
+                document.getElementById('img-preview').src = base64Image;
+                document.getElementById('img-preview-container').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
         }
 
-        async function send() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            const key = localStorage.getItem('rouis_key');
-            
-            if(!key) return toggleSettings();
-            if(!text && !currentImgBase64) return;
+        function resetImage() {
+            base64Image = null;
+            document.getElementById('img-preview-container').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+        }
 
-            appendMsg('user', text, currentImgBase64);
-            input.value = "";
-            const loadingId = appendLoading();
-            
+        function quickAsk(txt) {
+            document.getElementById('main-input').value = txt;
+            handleExecute();
+        }
+
+        async function handleExecute() {
+            const inputEl = document.getElementById('main-input');
+            const text = inputEl.value.trim();
+            const key = localStorage.getItem('rgpt_key');
+
+            if(!key) return openSettings();
+            if(!text && !base64Image) return;
+
+            // UI
+            document.getElementById('hero').style.display = 'none';
+            addMessage('user', text, base64Image);
+            inputEl.value = '';
+            const loadId = addLoading();
+            resetImage();
+
             try {
-                // Correction de l'URL pour éviter la 404
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
-                
-                let parts = [{ text: text || "Analyse cette image." }];
-                if(currentImgBase64) {
-                    parts.push({ inline_data: { mime_type: "image/jpeg", data: currentImgBase64.split(',')[1] } });
-                }
+                // Utilisation de la v1beta corrigée avec un modèle plus robuste
+                const model = "gemini-1.5-flash"; 
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-                const response = await fetch(url, {
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: text || "Décris cette image" },
+                            ...(base64Image ? [{ inline_data: { mime_type: "image/jpeg", data: base64Image.split(',')[1] } }] : [])
+                        ]
+                    }]
+                };
+
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: parts }] })
+                    body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
-                if(data.error) throw new Error(data.error.message);
-
-                const aiResponse = data.candidates[0].content.parts[0].text;
-                document.getElementById(loadingId).remove();
-                appendMsg('model', aiResponse);
+                const data = await res.json();
                 
-                // Reset image
-                currentImgBase64 = null;
-                document.getElementById('preview-area').classList.add('hidden');
+                if(data.error) throw new Error(data.error.message);
+                
+                const aiText = data.candidates[0].content.parts[0].text;
+                document.getElementById(loadId).remove();
+                addMessage('model', aiText);
+                saveToHistory(text || "Image Analysis");
+
             } catch (err) {
-                document.getElementById(loadingId).innerHTML = `<span class="text-red-500">Erreur : ${err.message}</span>`;
+                document.getElementById(loadId).innerHTML = `<div class="text-red-400 text-xs">⚠️ Erreur: ${err.message}</div>`;
             }
         }
 
-        function appendMsg(role, text, img) {
-            const box = document.getElementById('chat-box');
+        function addMessage(role, text, img) {
+            const flow = document.getElementById('chat-flow');
             const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-4 duration-500`;
+            
             div.innerHTML = `
-                <div class="max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-[#fbbf24] text-black' : 'bg-[#1a2542] text-white'} shadow-lg">
-                    ${img ? `<img src="${img}" class="h-40 rounded-lg mb-2">` : ''}
-                    <p class="text-sm whitespace-pre-wrap">${text}</p>
-                </div>`;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
+                <div class="max-w-[85%] space-y-2">
+                    <div class="p-4 rounded-[2rem] ${role === 'user' ? 'bg-amber-400 text-black rounded-tr-none font-medium' : 'neo-glass rounded-tl-none text-gray-200'}">
+                        ${img ? `<img src="${img}" class="h-48 w-full object-cover rounded-2xl mb-3">` : ''}
+                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${text}</p>
+                    </div>
+                    <div class="text-[10px] text-gray-600 px-2">${role === 'user' ? 'VOUS' : 'ROUISGPT'}</div>
+                </div>
+            `;
+            flow.appendChild(div);
+            flow.scrollTop = flow.scrollHeight;
         }
 
-        function appendLoading() {
+        function addLoading() {
             const id = 'l-' + Date.now();
-            const box = document.getElementById('chat-box');
+            const flow = document.getElementById('chat-flow');
             const div = document.createElement('div');
             div.id = id;
-            div.innerHTML = `<div class="bg-[#1a2542] p-4 rounded-2xl inline-flex gap-1"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-            box.appendChild(div);
+            div.className = "flex justify-start";
+            div.innerHTML = `<div class="neo-glass p-4 rounded-2xl pulse-loader"><div class="pulse-dot"></div><div class="pulse-dot"></div><div class="pulse-dot"></div></div>`;
+            flow.appendChild(div);
+            flow.scrollTop = flow.scrollHeight;
             return id;
+        }
+
+        function saveToHistory(title) {
+            history.unshift({ title, id: Date.now() });
+            history = history.slice(0, 10);
+            localStorage.setItem('rgpt_history', JSON.stringify(history));
+            renderSideHistory();
+        }
+
+        function renderSideHistory() {
+            const side = document.getElementById('side-history');
+            side.innerHTML = history.map(h => `
+                <div class="p-3 text-xs text-gray-500 hover:text-amber-400 hover:bg-white/5 rounded-xl cursor-pointer truncate transition">
+                    # ${h.title}
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('rgpt_history');
+            history = [];
+            renderSideHistory();
         }
     </script>
 </body>
