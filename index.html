@@ -3,236 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouisGPT | Titanium</title>
+    <title>RouisGPT | Infinity</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --amber: #fbbf24; --bg: #050505; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #fff; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        :root { --accent: #fbbf24; --dark: #020202; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--dark); color: #fff; overflow: hidden; }
+        .glass { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.03); }
+        .sidebar { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 300px; }
+        .msg-user { background: var(--accent); color: #000; border-radius: 24px 24px 4px 24px; font-weight: 600; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2); }
+        .msg-ai { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px 24px 24px 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .message-user { background: var(--amber); color: #000; border-radius: 20px 20px 4px 20px; }
-        .message-ai { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.05); border-radius: 20px 20px 20px 4px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .anim-msg { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes reveal { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-reveal { animation: reveal 0.4s ease-out forwards; }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="h-screen flex">
 
-    <aside id="sidebar" class="w-72 border-r border-white/5 bg-black/50 flex flex-col sidebar z-50">
-        <div class="p-6 border-b border-white/5 flex items-center justify-between">
-            <span class="font-black tracking-tighter text-xl">Rouis<span class="text-amber-400">GPT</span></span>
+    <aside id="sidebar" class="sidebar border-r border-white/5 bg-black flex flex-col z-50 overflow-hidden">
+        <div class="p-8 flex items-center justify-between">
+            <h1 class="text-2xl font-black tracking-tighter">Rouis<span class="text-amber-400">GPT</span></h1>
             <button onclick="toggleSidebar()" class="lg:hidden text-gray-500">✕</button>
         </div>
-        <div class="p-4">
-            <button onclick="newChat()" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-xs font-bold hover:bg-amber-400 hover:text-black transition flex items-center justify-center gap-2">
-                <span>+</span> NOUVELLE DISCO
-            </button>
+        <div class="px-6 pb-6">
+            <button onclick="window.location.reload()" class="w-full py-4 bg-white/5 hover:bg-amber-400 hover:text-black rounded-2xl transition-all font-bold text-xs tracking-widest uppercase">Nouvelle Session</button>
         </div>
-        <div id="history-list" class="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+        <div id="history-container" class="flex-1 overflow-y-auto px-6 space-y-3 no-scrollbar">
             </div>
-        <div class="p-4 border-t border-white/5">
-            <button onclick="openConfig()" class="w-full text-[10px] mono text-gray-500 hover:text-amber-400 transition">⚙️ CONFIG_SYSTEM</button>
+        <div class="p-8">
+            <button onclick="document.getElementById('setup').classList.remove('hidden')" class="text-[10px] text-gray-600 hover:text-amber-400 transition uppercase tracking-widest font-bold">Paramètres Système</button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col relative min-w-0">
-        <header class="h-16 flex items-center justify-between px-6 glass border-b border-white/5">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-white/5 rounded-lg">☰</button>
-            <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
-                <span class="text-[10px] mono text-gray-400 uppercase tracking-widest">Neural_Link_Active</span>
+        <header class="h-20 flex items-center px-8 justify-between glass z-40">
+            <button onclick="toggleSidebar()" class="p-3 hover:bg-white/5 rounded-xl transition text-amber-400">☰</button>
+            <div class="flex flex-col items-center">
+                <span class="text-[10px] font-bold text-gray-500 tracking-[0.4em] uppercase">Core_Neural_v4</span>
+                <div id="status" class="flex items-center gap-1.5 mt-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></div>
+                    <span class="text-[9px] text-amber-400/80 font-bold uppercase">Online</span>
+                </div>
             </div>
-            <div class="w-8"></div>
+            <div class="w-10"></div>
         </header>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 no-scrollbar">
-            <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center opacity-30">
-                <div class="text-6xl mb-4">💎</div>
-                <h2 class="text-2xl font-bold italic">Titanium Interface</h2>
-                <p class="text-xs mono mt-2">En attente d'instructions...</p>
+        <div id="chat-flow" class="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 no-scrollbar">
+            <div id="hero" class="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
+                <div class="text-7xl font-thin tracking-tighter">∞</div>
+                <h2 class="text-2xl font-light">L'intelligence sans limites.</h2>
             </div>
         </div>
 
-        <div id="preview-area" class="hidden px-10 pb-2">
-            <div class="relative inline-block group">
-                <img id="img-render" src="" class="h-24 rounded-2xl border-2 border-amber-400 shadow-2xl">
-                <button onclick="clearImg()" class="absolute -top-2 -right-2 bg-red-500 w-6 h-6 rounded-full text-xs">✕</button>
+        <div id="preview-box" class="hidden px-16 pb-4">
+            <div class="relative inline-block">
+                <img id="img-render" src="" class="h-32 rounded-3xl border border-amber-400/30 shadow-2xl">
+                <button onclick="clearImage()" class="absolute -top-3 -right-3 bg-red-600 w-7 h-7 rounded-full text-sm">✕</button>
             </div>
         </div>
 
-        <footer class="p-4 md:p-8">
-            <div class="max-w-4xl mx-auto glass rounded-[2rem] p-2 flex items-end gap-2 ring-1 ring-white/10 focus-within:ring-amber-400/50 transition-all duration-500 shadow-2xl">
-                <button onclick="document.getElementById('file-input').click()" class="p-4 text-gray-400 hover:text-amber-400 transition">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <footer class="p-6 md:p-12 bg-gradient-to-t from-black via-black/80 to-transparent">
+            <div class="max-w-5xl mx-auto glass rounded-[3rem] p-3 flex items-end gap-3 ring-1 ring-white/10 focus-within:ring-amber-400/30 transition-all shadow-2xl">
+                <button onclick="document.getElementById('file-up').click()" class="p-4 text-gray-500 hover:text-amber-400 transition">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                 </button>
-                <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handlePreview(event)">
+                <input type="file" id="file-up" class="hidden" accept="image/*" onchange="previewImg(event)">
                 
-                <textarea id="user-input" rows="1" placeholder="Posez votre question..." class="flex-1 bg-transparent p-4 outline-none resize-none text-sm placeholder:text-gray-700" oninput="autoResize(this)"></textarea>
+                <textarea id="user-prompt" rows="1" placeholder="Posez une question à l'IA..." class="flex-1 bg-transparent p-4 outline-none resize-none text-gray-200" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
                 
-                <button id="send-btn" onclick="process()" class="bg-amber-400 text-black h-14 px-8 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg">
-                    Envoyer
+                <button id="send-btn" onclick="execute()" class="bg-amber-400 text-black h-14 px-10 rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg">
+                    Lancer
                 </button>
             </div>
         </footer>
     </main>
 
-    <div id="config-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] hidden flex items-center justify-center p-6">
-        <div class="w-full max-w-md glass p-10 rounded-[3rem] text-center border-amber-400/20">
-            <h3 class="text-2xl font-bold mb-6">Activation Clé API</h3>
-            <input type="password" id="api-key-input" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none focus:border-amber-400 text-center mono mb-6" placeholder="AIzaSy...">
-            <button onclick="saveConfig()" class="w-full bg-white text-black font-black py-5 rounded-2xl hover:bg-amber-400 transition">INITIALISER ROUISGPT</button>
+    <div id="setup" class="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[100] hidden flex items-center justify-center p-6">
+        <div class="w-full max-w-md glass p-12 rounded-[4rem] text-center border-amber-400/10">
+            <h3 class="text-3xl font-bold mb-8 italic text-amber-400">Accès Système</h3>
+            <input type="password" id="api-key" class="w-full bg-white/5 border border-white/10 p-6 rounded-3xl outline-none focus:border-amber-400 text-center tracking-widest mb-6 transition" placeholder="VOTRE CLÉ API">
+            <button onclick="saveSetup()" class="w-full bg-white text-black font-black py-6 rounded-3xl hover:bg-amber-400 transition duration-500 uppercase tracking-widest text-xs">Synchroniser</button>
         </div>
     </div>
 
     <script>
-        let base64 = null;
-        let chatHistory = JSON.parse(localStorage.getItem('rgpt_logs')) || [];
+        let imgB64 = null;
+        let history = JSON.parse(localStorage.getItem('rgpt_inf_hist')) || [];
 
-        window.onload = () => {
-            renderHistory();
-            if(!localStorage.getItem('rgpt_key')) openConfig();
-        };
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-ml-72'); }
-        function openConfig() { document.getElementById('config-modal').classList.remove('hidden'); }
-        function saveConfig() {
-            const val = document.getElementById('api-key-input').value.trim();
-            if(val) { localStorage.setItem('rgpt_key', val); document.getElementById('config-modal').classList.add('hidden'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-ml-[300px]'); }
+        function saveSetup() { 
+            const k = document.getElementById('api-key').value.trim();
+            if(k) { localStorage.setItem('rgpt_key', k); document.getElementById('setup').classList.add('hidden'); }
         }
 
-        function autoResize(el) {
-            el.style.height = 'auto';
-            el.style.height = (el.scrollHeight) + 'px';
-        }
-
-        function handlePreview(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                base64 = ev.target.result;
-                document.getElementById('img-render').src = base64;
-                document.getElementById('preview-area').classList.remove('hidden');
+        function previewImg(e) {
+            const f = e.target.files[0];
+            const r = new FileReader();
+            r.onload = (ev) => {
+                imgB64 = ev.target.result;
+                document.getElementById('img-render').src = imgB64;
+                document.getElementById('preview-box').classList.remove('hidden');
             };
-            reader.readAsDataURL(file);
+            r.readAsDataURL(f);
         }
 
-        function clearImg() {
-            base64 = null;
-            document.getElementById('preview-area').classList.add('hidden');
-            document.getElementById('file-input').value = '';
+        function clearImage() {
+            imgB64 = null;
+            document.getElementById('preview-box').classList.add('hidden');
+            document.getElementById('file-up').value = '';
         }
 
-        function newChat() {
-            document.getElementById('chat-container').innerHTML = `
-                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center opacity-30">
-                    <div class="text-6xl mb-4">💎</div>
-                    <h2 class="text-2xl font-bold italic">Titanium Interface</h2>
-                    <p class="text-xs mono mt-2">En attente d'instructions...</p>
-                </div>`;
-            document.getElementById('empty-state').style.display = 'flex';
-        }
-
-        async function process() {
-            const input = document.getElementById('user-input');
-            const btn = document.getElementById('send-btn');
-            const text = input.value.trim();
+        async function execute() {
+            const input = document.getElementById('user-prompt');
+            const prompt = input.value.trim();
             const key = localStorage.getItem('rgpt_key');
+            if(!key) return document.getElementById('setup').classList.remove('hidden');
+            if(!prompt && !imgB64) return;
 
-            if(!key) return openConfig();
-            if(!text && !base64) return;
-
-            // UI Lockdown
-            btn.disabled = true;
-            document.getElementById('empty-state').style.display = 'none';
-            addMsg('user', text, base64);
+            document.getElementById('hero').style.display = 'none';
+            addBubble('user', prompt, imgB64);
             input.value = '';
             input.style.height = 'auto';
             const loadId = addLoading();
-            const activeImg = base64;
-            clearImg();
+            const payloadImg = imgB64;
+            clearImage();
 
-            try {
-                // Stratégie "Auto-Repair" : On tente la v1, puis la v1beta si ça échoue
-                let result = await callAPI('v1', text, activeImg, key);
-                
-                if(result.error) {
-                    result = await callAPI('v1beta', text, activeImg, key);
-                }
+            // Moteur Infinity : Teste plusieurs combinaisons pour éviter la 404
+            const combinations = [
+                {v: 'v1', m: 'gemini-1.5-flash'},
+                {v: 'v1beta', m: 'gemini-1.5-flash'},
+                {v: 'v1', m: 'gemini-pro'},
+                {v: 'v1beta', m: 'gemini-pro'}
+            ];
 
-                if(result.error) throw new Error(result.error.message);
+            let success = false;
+            for (let combo of combinations) {
+                if(success) break;
+                try {
+                    const url = `https://generativelanguage.googleapis.com/${combo.v}/models/${combo.m}:generateContent?key=${key}`;
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: prompt || "Analyse l'image." },
+                                    ...(payloadImg ? [{ inline_data: { mime_type: "image/jpeg", data: payloadImg.split(',')[1] } }] : [])
+                                ]
+                            }]
+                        })
+                    });
+                    const data = await res.json();
+                    if(!data.error) {
+                        document.getElementById(loadId).remove();
+                        addBubble('ai', data.candidates[0].content.parts[0].text);
+                        saveToHistory(prompt || "Vision AI");
+                        success = true;
+                    }
+                } catch(e) { console.log("Test échoué pour: " + combo.m); }
+            }
 
-                const responseText = result.candidates[0].content.parts[0].text;
-                document.getElementById(loadId).remove();
-                addMsg('ai', responseText);
-                saveLog(text || "Analyse Image");
-
-            } catch (err) {
-                document.getElementById(loadId).innerHTML = `<div class="text-red-500 text-[10px] mono">ERREUR_SYSTEM: ${err.message}</div>`;
-            } finally {
-                btn.disabled = false;
+            if(!success) {
+                document.getElementById(loadId).innerHTML = `<div class="text-red-500 text-xs font-bold uppercase tracking-widest">Échec Total : Vérifiez votre clé API ou quota.</div>`;
             }
         }
 
-        async function callAPI(version, text, img, key) {
-            const url = `https://generativelanguage.googleapis.com/${version}/models/gemini-1.5-flash:generateContent?key=${key}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: text || "Analyse de l'image jointe." },
-                            ...(img ? [{ inline_data: { mime_type: "image/jpeg", data: img.split(',')[1] } }] : [])
-                        ]
-                    }]
-                })
-            });
-            return await response.json();
-        }
-
-        function addMsg(role, text, img) {
-            const container = document.getElementById('chat-container');
+        function addBubble(role, text, img) {
+            const flow = document.getElementById('chat-flow');
             const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} anim-msg`;
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} anim-reveal`;
             div.innerHTML = `
-                <div class="max-w-[85%] p-5 shadow-2xl ${role === 'user' ? 'message-user' : 'message-ai text-gray-200'}">
-                    ${img ? `<img src="${img}" class="rounded-xl mb-4 max-h-80 w-full object-cover shadow-lg">` : ''}
-                    <p class="text-[14px] leading-relaxed whitespace-pre-wrap">${text}</p>
+                <div class="max-w-[85%] p-6 ${role === 'user' ? 'msg-user' : 'msg-ai text-gray-200'}">
+                    ${img ? `<img src="${img}" class="rounded-2xl mb-4 max-h-80 w-full object-cover shadow-lg">` : ''}
+                    <p class="text-[15px] leading-relaxed whitespace-pre-wrap">${text}</p>
                 </div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            flow.appendChild(div);
+            flow.scrollTop = flow.scrollHeight;
         }
 
         function addLoading() {
-            const id = 'ld-' + Date.now();
-            const container = document.getElementById('chat-container');
+            const id = 'l-' + Date.now();
             const div = document.createElement('div');
             div.id = id;
             div.className = "flex justify-start animate-pulse";
-            div.innerHTML = `<div class="message-ai p-4 flex gap-1"><div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div><div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div><div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div></div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            div.innerHTML = `<div class="msg-ai p-5 flex gap-1.5"><div class="w-2 h-2 bg-amber-400 rounded-full"></div><div class="w-2 h-2 bg-amber-400 rounded-full"></div><div class="w-2 h-2 bg-amber-400 rounded-full"></div></div>`;
+            document.getElementById('chat-flow').appendChild(div);
             return id;
         }
 
-        function saveLog(title) {
-            chatHistory.unshift({ title, date: new Date().toLocaleTimeString() });
-            chatHistory = chatHistory.slice(0, 20); // Garde 20 derniers
-            localStorage.setItem('rgpt_logs', JSON.stringify(chatHistory));
+        function saveToHistory(t) {
+            history.unshift({t, d: new Date().toLocaleTimeString()});
+            history = history.slice(0, 15);
+            localStorage.setItem('rgpt_inf_hist', JSON.stringify(history));
             renderHistory();
         }
 
         function renderHistory() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = chatHistory.map(item => `
-                <div class="p-3 bg-white/5 rounded-xl text-[10px] mono text-gray-500 border border-white/5 hover:border-amber-400/30 transition cursor-pointer truncate">
-                    <span class="text-amber-400/50 mr-2">${item.date}</span> ${item.title}
+            const cont = document.getElementById('history-container');
+            cont.innerHTML = history.map(h => `
+                <div class="p-4 bg-white/5 rounded-2xl text-[11px] text-gray-400 border border-white/5 hover:border-amber-400/40 transition cursor-pointer truncate">
+                    <span class="text-amber-400/50 mr-2">${h.d}</span> ${h.t}
                 </div>
             `).join('');
         }
+
+        window.onload = () => { renderHistory(); if(!localStorage.getItem('rgpt_key')) document.getElementById('setup').classList.remove('hidden'); };
     </script>
 </body>
 </html>
